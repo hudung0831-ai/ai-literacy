@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우리아이 AI타입 진단검사</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4A9D9A;
+            --primary-dark: #3A8280;
+            --primary-light: #E8F4F3;
+            --accent: #FF8A7A;
+            --accent-light: #FFF0EE;
+            --bg: #FAFAF8;
+            --card: #FFFFFF;
+            --text-primary: #2D3748;
+            --text-secondary: #5A6778;
+            --text-muted: #8896A6;
+            --border: #E8ECF0;
+            --shadow: rgba(74, 157, 154, 0.08);
+            --shadow-hover: rgba(74, 157, 154, 0.15);
+            --error: #E53E3E;
+            --green: #38A169;
+            --blue: #3182CE;
+            --yellow: #D69E2E;
+            --red: #E53E3E;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Landing Screen */
+        .landing {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .logo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .logo-badge svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .landing h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .landing h1 span {
+            color: var(--primary);
+        }
+
+        .landing .subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+
+        .info-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px var(--shadow);
+            text-align: left;
+        }
+
+        .info-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card h3 svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .info-list .icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        /* Demographics Section */
+        .section-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px var(--shadow);
+            text-align: left;
+        }
+
+        .section-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-card h3 svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .form-group label .required {
+            color: var(--error);
+            margin-left: 4px;
+        }
+
+        .form-group label .hint {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 13px;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .age-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .age-input {
+            width: 100px;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            text-align: center;
+            transition: all 0.2s ease;
+            background: white;
+            -moz-appearance: textfield;
+        }
+
+        .age-input::-webkit-outer-spin-button,
+        .age-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .age-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 157, 154, 0.1);
+        }
+
+        .age-input.error {
+            border-color: var(--error);
+        }
+
+        .age-suffix {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        /* Subject Options */
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .subject-option {
+            position: relative;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .subject-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .subject-option.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .subject-option input {
+            display: none;
+        }
+
+        .subject-option .subject-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .subject-option span {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .subject-option.selected span {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Consent Section */
+        .consent-box {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .consent-box h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 12px 0 8px;
+        }
+
+        .consent-box h4:first-child {
+            margin-top: 0;
+        }
+
+        .consent-box ul {
+            margin-left: 16px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-group:hover {
+            border-color: var(--primary);
+        }
+
+        .checkbox-group.checked {
+            border-color: var(--primary);
+        }
+
+        .checkbox-group.error {
+            border-color: var(--error);
+            background: #FFF5F5;
+        }
+
+        .checkbox-input {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-group.checked .checkbox-custom {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-custom svg {
+            width: 14px;
+            height: 14px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .checkbox-group.checked .checkbox-custom svg {
+            opacity: 1;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .checkbox-label .required {
+            color: var(--error);
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Email Input */
+        .email-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .email-section label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .email-section label span {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 157, 154, 0.1);
+        }
+
+        .email-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 18px 32px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(74, 157, 154, 0.3);
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 157, 154, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--card);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .trust-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .trust-badge svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+            opacity: 0.7;
+        }
+
+        /* Question Screen */
+        .question-screen {
+            padding-top: 20px;
+        }
+
+        .progress-container {
+            margin-bottom: 32px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-count {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--primary-light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, #5FB5B2 100%);
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .category-badge.category-p { background: #E8F4F3; color: #4A9D9A; }
+        .category-badge.category-u { background: #EBF4FF; color: #3182CE; }
+        .category-badge.category-l { background: #FEF3C7; color: #D97706; }
+        .category-badge.category-s { background: #F3E8FF; color: #7C3AED; }
+
+        .question-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 28px 24px;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        /* Options */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .option-item.selected {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 157, 154, 0.15);
+        }
+
+        .option-item input {
+            display: none;
+        }
+
+        .option-radio {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .option-item.selected .option-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .option-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .option-item.selected .option-radio::after {
+            opacity: 1;
+        }
+
+        .option-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .option-item.selected .option-text {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Likert Scale */
+        .likert-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .likert-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 8px;
+        }
+
+        .likert-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            flex: 1;
+            max-width: 70px;
+        }
+
+        .likert-circle {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: white;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .likert-option:hover .likert-circle {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .likert-option.selected .likert-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .likert-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.3;
+            word-break: keep-all;
+        }
+
+        .likert-option.selected .likert-label {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .likert-endpoints {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 0 12px;
+            margin-top: 4px;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            padding-top: 30px;
+            text-align: center;
+        }
+
+        .result-header {
+            margin-bottom: 24px;
+        }
+
+        .result-type-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .result-type-name {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .result-type-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .risk-badge.risk-green { background: #C6F6D5; color: #22543D; }
+        .risk-badge.risk-blue { background: #BEE3F8; color: #2A4365; }
+        .risk-badge.risk-yellow { background: #FEFCBF; color: #744210; }
+        .risk-badge.risk-red { background: #FED7D7; color: #742A2A; }
+
+        .result-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 28px 24px;
+            box-shadow: 0 8px 32px var(--shadow);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .result-section {
+            margin-bottom: 24px;
+        }
+
+        .result-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-section h4 svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .result-section p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .result-section ul {
+            list-style: none;
+        }
+
+        .result-section li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .result-section li:before {
+            content: "•";
+            position: absolute;
+            left: 6px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .score-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .score-item {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+
+        .score-item .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .score-item .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-primary);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .container {
+                padding: 16px;
+            }
+
+            .landing h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .subject-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-type-name {
+                font-size: 26px;
+            }
+
+            .score-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Screen -->
+        <div id="landing" class="screen active landing">
+            <div class="logo-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                AI 리터러시 연구소
+            </div>
+
+            <h1>우리 아이<br><span>AI타입</span> 진단검사</h1>
+
+            <p class="subtitle">
+                AI와 함께 자라는 아이,<br>
+                어떤 유형의 사용자인지 알아보세요.
+            </p>
+
+            <div class="info-card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    검사 안내
+                </h3>
+                <ul class="info-list">
+                    <li>
+                        <span class="icon">📝</span>
+                        <span>총 <strong>19문항</strong>, 약 5분 소요</span>
+                    </li>
+                    <li>
+                        <span class="icon">🎯</span>
+                        <span><strong>4가지 AI 사용자 유형</strong>과 위험지수를 진단합니다</span>
+                    </li>
+                    <li>
+                        <span class="icon">👀</span>
+                        <span>평소 아이의 모습을 떠올리며 응답해주세요</span>
+                    </li>
+                    <li>
+                        <span class="icon">💡</span>
+                        <span>정답이 없어요. <strong>솔직한 응답</strong>이 정확한 결과를 만듭니다</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Demographics Section -->
+            <div class="section-card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    자녀 정보
+                </h3>
+
+                <div class="form-group">
+                    <label for="ageInput">
+                        자녀 나이<span class="required">*</span>
+                        <span class="hint">만 나이를 입력해주세요</span>
+                    </label>
+                    <div class="age-input-wrapper">
+                        <input type="number" class="age-input" id="ageInput" min="1" max="25" placeholder="예: 12">
+                        <span class="age-suffix">세</span>
+                    </div>
+                    <p class="error-message" id="ageError">나이를 입력해주세요 (1-25세)</p>
+                </div>
+            </div>
+
+            <!-- Private Education Section -->
+            <div class="section-card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                    사교육 현황
+                </h3>
+
+                <div class="form-group">
+                    <label>
+                        현재 받고 있는 사교육<span class="required">*</span>
+                        <span class="hint">해당하는 과목을 모두 선택해주세요</span>
+                    </label>
+                    <div class="subject-grid" id="subjectGrid">
+                        <label class="subject-option" data-subject="국어">
+                            <input type="checkbox" name="subject" value="국어">
+                            <span class="subject-icon">📖</span>
+                            <span>국어</span>
+                        </label>
+                        <label class="subject-option" data-subject="수학">
+                            <input type="checkbox" name="subject" value="수학">
+                            <span class="subject-icon">📐</span>
+                            <span>수학</span>
+                        </label>
+                        <label class="subject-option" data-subject="영어">
+                            <input type="checkbox" name="subject" value="영어">
+                            <span class="subject-icon">🔤</span>
+                            <span>영어</span>
+                        </label>
+                        <label class="subject-option" data-subject="과학">
+                            <input type="checkbox" name="subject" value="과학">
+                            <span class="subject-icon">🔬</span>
+                            <span>과학</span>
+                        </label>
+                        <label class="subject-option" data-subject="사회">
+                            <input type="checkbox" name="subject" value="사회">
+                            <span class="subject-icon">🌍</span>
+                            <span>사회</span>
+                        </label>
+                        <label class="subject-option" data-subject="코딩">
+                            <input type="checkbox" name="subject" value="코딩">
+                            <span class="subject-icon">💻</span>
+                            <span>코딩</span>
+                        </label>
+                        <label class="subject-option" data-subject="예체능">
+                            <input type="checkbox" name="subject" value="예체능">
+                            <span class="subject-icon">🎨</span>
+                            <span>예체능</span>
+                        </label>
+                        <label class="subject-option" data-subject="논술">
+                            <input type="checkbox" name="subject" value="논술">
+                            <span class="subject-icon">✍️</span>
+                            <span>논술</span>
+                        </label>
+                        <label class="subject-option" data-subject="없음">
+                            <input type="checkbox" name="subject" value="없음">
+                            <span class="subject-icon">❌</span>
+                            <span>없음</span>
+                        </label>
+                    </div>
+                    <p class="error-message" id="subjectError">하나 이상 선택해주세요</p>
+                </div>
+            </div>
+
+            <!-- Consent Section -->
+            <div class="section-card">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    개인정보 수집 및 이용 동의
+                </h3>
+
+                <div class="consent-box">
+                    <h4>1. 수집 항목</h4>
+                    <ul>
+                        <li>필수: 자녀 나이, 사교육 현황, 검사 응답, 검사 일시</li>
+                        <li>선택: 이메일 주소</li>
+                    </ul>
+
+                    <h4>2. 수집 목적</h4>
+                    <ul>
+                        <li>AI 리터러시 유형 진단 및 결과 제공</li>
+                        <li>연령대별 통계 분석 및 연구</li>
+                        <li>이메일 제공 시: 맞춤 교육 정보 발송</li>
+                    </ul>
+
+                    <h4>3. 보유 기간</h4>
+                    <p>수집일로부터 1년간 보유 후 파기</p>
+
+                    <h4>4. 동의 거부권 및 불이익</h4>
+                    <p>동의를 거부할 권리가 있으며, 필수 동의 거부 시 검사 이용이 제한됩니다.</p>
+                </div>
+
+                <div class="checkbox-group" id="consentCheckbox" onclick="toggleConsent()">
+                    <input type="checkbox" class="checkbox-input" id="consentInput">
+                    <span class="checkbox-custom">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </span>
+                    <span class="checkbox-label">
+                        <span class="required">[필수]</span> 개인정보 수집 및 이용에 동의합니다.
+                    </span>
+                </div>
+                <p class="error-message" id="consentError">검사를 시작하려면 개인정보 수집에 동의해주세요.</p>
+
+                <div class="email-section">
+                    <label for="emailInput">
+                        이메일 <span>(선택 - 결과 및 맞춤 교육 정보 수신)</span>
+                    </label>
+                    <input type="email" class="email-input" id="emailInput" placeholder="example@email.com">
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="startTest()">
+                검사 시작하기
+            </button>
+
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>SSL 암호화</span>
+                </div>
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <span>안전한 저장</span>
+                </div>
+                <div class="trust-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <span>전문가 설계</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="question" class="screen question-screen">
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span class="progress-text" id="categoryText">성격 특성</span>
+                    <span class="progress-count"><span id="currentQ">1</span> / 19</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <span class="category-badge category-p" id="categoryBadge">P 성격</span>
+                <span class="question-number" id="questionNumber">Q1</span>
+                <h2 class="question-text" id="questionText"></h2>
+                <div class="options-container" id="optionsContainer">
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result" class="screen result-screen">
+            <div class="result-header">
+                <div class="result-type-icon" id="resultIcon">✈️</div>
+                <div class="result-type-name" id="resultTypeName">조종사형</div>
+                <div class="result-type-subtitle" id="resultTypeSubtitle">탐색 + 정밀</div>
+                <div class="risk-badge risk-green" id="riskBadge">
+                    <span id="riskIcon">🟢</span>
+                    <span id="riskText">고자율군 (HRS 87점)</span>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-section">
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4M12 8h.01"/>
+                        </svg>
+                        유형 설명
+                    </h4>
+                    <p id="resultDescription"></p>
+                </div>
+
+                <div class="result-section">
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        강점
+                    </h4>
+                    <ul id="strengthsList"></ul>
+                </div>
+
+                <div class="result-section">
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        주의점
+                    </h4>
+                    <ul id="weaknessesList"></ul>
+                </div>
+
+                <div class="result-section">
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        부모님 가이드
+                    </h4>
+                    <ul id="adviceList"></ul>
+                </div>
+
+                <div class="result-section">
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        세부 점수
+                    </h4>
+                    <div class="score-details">
+                        <div class="score-item">
+                            <div class="label">성격 (P)</div>
+                            <div class="value" id="pScore">0</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="label">사용 (U)</div>
+                            <div class="value" id="uScore">0</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="label">학습 (L)</div>
+                            <div class="value" id="lScore">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <button class="btn-primary" onclick="restartTest()">
+                    다시 검사하기
+                </button>
+                <button class="btn-secondary" onclick="copyResult()">
+                    결과 복사하기
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            검사 결과는 참고용이며, 전문 상담을 대체하지 않습니다.<br>
+            <span style="color: var(--text-muted);">© 2024 AI 리터러시 연구소</span>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">복사되었습니다!</div>
+
+    <script>
+        // ============================================
+        // 설정
+        // ============================================
+        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+        // ============================================
+        // 문항 데이터 (19문항) - 리커트 5점 척도
+        // ============================================
+        const likertLabels = ['전혀 그렇지 않다', '그렇지 않다', '보통이다', '그렇다', '매우 그렇다'];
+
+        const questions = [
+            // P (성격 특성) - 5문항
+            { id: 'P1', category: 'P', categoryName: '성격 특성', text: '자녀는 어른이나 권위자가 알려주는 정보도 의심해보는 편이다', type: 'likert' },
+            { id: 'P2', category: 'P', categoryName: '성격 특성', text: '자녀는 정답을 모르는 상황을 불안해하지 않고 받아들인다', type: 'likert' },
+            { id: 'P3', category: 'P', categoryName: '성격 특성', text: '자녀는 친구들과 의견이 달라도 자기 생각을 표현한다', type: 'likert' },
+            { id: 'P4', category: 'P', categoryName: '성격 특성', text: '자녀는 잘못된 정보를 믿었던 경험이 있으면 원인을 파악하려 한다', type: 'likert' },
+            { id: 'P5', category: 'P', categoryName: '성격 특성', text: '자녀는 새로운 것을 판단할 때 다른 사람 의견과 별개로 독자적으로 결정한다', type: 'likert' },
+            // U (AI 사용 행동) - 7문항
+            { id: 'U1', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI가 준 답변을 다른 출처에서 확인해본다', type: 'likert' },
+            { id: 'U2', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI 없이도 과제를 무리 없이 수행할 수 있다', type: 'likert' },
+            { id: 'U3', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI가 틀린 정보를 만들어낼 수 있다는 것을 알고 주의한다', type: 'likert' },
+            { id: 'U4', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI 답변을 그대로 쓰지 않고 자기 말로 바꾸거나 수정한다', type: 'likert' },
+            { id: 'U5', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI 답변과 자기 생각이 다르면 자기 판단을 유지한다', type: 'likert' },
+            { id: 'U6', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 모든 과제가 아니라 특정 상황에서만 선택적으로 AI를 사용한다', type: 'likert' },
+            { id: 'U7', category: 'U', categoryName: 'AI 사용 행동', text: '자녀는 AI가 틀린 정보를 준 경험 이후 검증하는 습관이 생겼다', type: 'likert' },
+            // L (학습 스타일) - 5문항
+            { id: 'L1', category: 'L', categoryName: '학습 스타일', text: '자녀는 새로운 것을 배울 때 여러 출처를 비교한다', type: 'likert' },
+            { id: 'L2', category: 'L', categoryName: '학습 스타일', text: '자녀는 단순 암기보다 원리와 개념 이해를 중시한다', type: 'likert' },
+            { id: 'L3', category: 'L', categoryName: '학습 스타일', text: '자녀는 읽거나 듣는 정보에서 오류나 모순을 잘 감지한다', type: 'likert' },
+            { id: 'L4', category: 'L', categoryName: '학습 스타일', text: '자녀는 학습할 때 스스로 궁금한 점을 질문으로 만든다', type: 'likert' },
+            { id: 'L5', category: 'L', categoryName: '학습 스타일', text: '자녀는 새 정보가 기존 지식과 충돌하면 어느 쪽이 맞는지 조사한다', type: 'likert' },
+            // S (성격 축) - 2문항
+            { id: 'S1', category: 'S', categoryName: '성격 유형', text: '자녀는 빨리 끝내는 것보다 꼼꼼하게 확인하는 것을 중시한다', type: 'likert' },
+            { id: 'S2', category: 'S', categoryName: '성격 유형', text: '자녀는 익숙한 방법보다 새로운 방법을 탐색하는 것을 좋아한다', type: 'likert' }
+        ];
+
+        // ============================================
+        // 결과 프로파일 데이터
+        // ============================================
+        const typeProfiles = {
+            pilot: {
+                name: '조종사형',
+                subtitle: '탐색 + 정밀',
+                icon: '✈️',
+                description: '다각도로 탐색하고, 발견한 것을 정밀하게 검증합니다. AI를 완전히 통제하며 사용하는 최고 수준의 AI 리터러시를 보유하고 있습니다.',
+                strengths: [
+                    '여러 출처를 비교하고 교차 검증하는 습관',
+                    'AI 출력의 오류를 스스로 탐지하는 능력',
+                    '자신만의 판단 기준을 유지하는 독립성'
+                ],
+                weaknesses: [
+                    '과잉 검증으로 효율이 떨어질 수 있음',
+                    '완벽주의 성향으로 결정이 늦어질 수 있음'
+                ],
+                advice: [
+                    '현재 습관을 유지하도록 격려해주세요',
+                    '다른 친구들에게 AI 활용법을 공유하도록 권해보세요',
+                    '새로운 AI 도구를 탐색해볼 기회를 주셔도 좋습니다'
+                ]
+            },
+            engineer: {
+                name: '기관사형',
+                subtitle: '고정 + 정밀',
+                icon: '🚂',
+                description: '정해진 경로를 정밀하게 따릅니다. 체계적이고 꼼꼼하지만, 새로운 접근법을 탐색하는 것은 덜 합니다. 안정적인 AI 사용 패턴을 보입니다.',
+                strengths: [
+                    '체계적이고 일관된 검증 습관',
+                    '정해진 절차를 꼼꼼히 따르는 성실함',
+                    'AI 출력을 주의 깊게 확인하는 습관'
+                ],
+                weaknesses: [
+                    '새로운 정보원이나 방법을 탐색하지 않음',
+                    '익숙한 것에만 의존할 수 있음',
+                    '변화하는 AI 환경에 적응이 느릴 수 있음'
+                ],
+                advice: [
+                    '가끔 새로운 출처나 방법을 시도해보도록 권해주세요',
+                    '다양한 AI 도구를 비교해보는 기회를 주세요',
+                    '"다른 방법은 없을까?"라고 물어보는 습관을 만들어주세요'
+                ]
+            },
+            surfer: {
+                name: '서퍼형',
+                subtitle: '탐색 + 신속',
+                icon: '🏄',
+                description: '여기저기 탐색하지만 깊이 확인하지 않습니다. 호기심이 많고 빠르게 움직이지만, 정보의 정확성을 검증하는 습관이 부족합니다.',
+                strengths: [
+                    '다양한 정보원을 탐색하는 호기심',
+                    '빠른 정보 습득 능력',
+                    '새로운 것에 대한 개방적 태도'
+                ],
+                weaknesses: [
+                    '정보 검증 없이 넘어가는 습관',
+                    '잘못된 정보를 축적할 위험',
+                    '깊이 있는 이해보다 표면적 지식에 머무를 수 있음'
+                ],
+                advice: [
+                    'AI 답변을 받으면 "이게 맞는지 어떻게 확인할까?" 물어보세요',
+                    '하나의 주제를 깊이 파고드는 프로젝트를 해보게 하세요',
+                    '속도보다 정확성이 중요한 과제를 경험하게 해주세요'
+                ]
+            },
+            passenger: {
+                name: '탑승객형',
+                subtitle: '고정 + 신속',
+                icon: '🚌',
+                description: '목적지만 입력하고 핸들에서 손을 뗍니다. AI에 사고를 위임하고 출력을 그대로 수용합니다. 환각에 가장 취약한 유형입니다.',
+                strengths: [
+                    'AI 도구를 거부감 없이 사용',
+                    '새로운 기술에 대한 적응력'
+                ],
+                weaknesses: [
+                    'AI 출력을 무비판적으로 수용',
+                    '자신의 판단력 발달이 저해될 위험',
+                    '잘못된 정보를 그대로 사용할 가능성 높음',
+                    '인지적 자율성 상실 위험'
+                ],
+                advice: [
+                    'AI 사용 전 5분 먼저 스스로 생각해보는 규칙을 만드세요',
+                    'AI 답변을 자기 말로 바꿔 설명하게 해보세요',
+                    '일주일에 하루는 "AI 없는 날"로 정해보세요',
+                    'AI가 틀릴 수 있다는 사례를 함께 찾아보세요'
+                ]
+            }
+        };
+
+        const riskLevels = {
+            green: { icon: '🟢', text: '고자율군', class: 'risk-green', range: [85, 100] },
+            blue: { icon: '🔵', text: '안전군', class: 'risk-blue', range: [65, 84] },
+            yellow: { icon: '🟡', text: '주의군', class: 'risk-yellow', range: [45, 64] },
+            red: { icon: '🔴', text: '위험군', class: 'risk-red', range: [0, 44] }
+        };
+
+        // ============================================
+        // 상태 관리
+        // ============================================
+        let currentQuestion = 0;
+        let answers = {};
+        let userAge = null;
+        let userSubjects = [];
+        let userEmail = '';
+        let consentGiven = false;
+
+        // ============================================
+        // 유틸리티 함수
+        // ============================================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ============================================
+        // 랜딩 페이지 함수
+        // ============================================
+        function toggleSubject(element) {
+            const checkbox = element.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('selected', checkbox.checked);
+
+            // "없음" 선택 시 다른 선택 해제
+            if (element.dataset.subject === '없음' && checkbox.checked) {
+                document.querySelectorAll('.subject-option').forEach(opt => {
+                    if (opt.dataset.subject !== '없음') {
+                        opt.classList.remove('selected');
+                        opt.querySelector('input').checked = false;
+                    }
+                });
+            }
+            // 다른 과목 선택 시 "없음" 해제
+            if (element.dataset.subject !== '없음' && checkbox.checked) {
+                const noneOption = document.querySelector('.subject-option[data-subject="없음"]');
+                if (noneOption) {
+                    noneOption.classList.remove('selected');
+                    noneOption.querySelector('input').checked = false;
+                }
+            }
+
+            document.getElementById('subjectError').classList.remove('show');
+        }
+
+        function toggleConsent() {
+            const checkbox = document.getElementById('consentCheckbox');
+            const input = document.getElementById('consentInput');
+            consentGiven = !consentGiven;
+            input.checked = consentGiven;
+            checkbox.classList.toggle('checked', consentGiven);
+            checkbox.classList.remove('error');
+            document.getElementById('consentError').classList.remove('show');
+        }
+
+        function validateInputs() {
+            let isValid = true;
+
+            // 나이 검증
+            const ageInput = document.getElementById('ageInput');
+            const ageValue = parseInt(ageInput.value, 10);
+            if (isNaN(ageValue) || ageValue < 1 || ageValue > 25) {
+                ageInput.classList.add('error');
+                document.getElementById('ageError').classList.add('show');
+                isValid = false;
+            } else {
+                ageInput.classList.remove('error');
+                document.getElementById('ageError').classList.remove('show');
+                userAge = ageValue;
+            }
+
+            // 과목 검증
+            const selectedSubjects = document.querySelectorAll('.subject-option.selected');
+            if (selectedSubjects.length === 0) {
+                document.getElementById('subjectError').classList.add('show');
+                isValid = false;
+            } else {
+                userSubjects = Array.from(selectedSubjects).map(el => el.dataset.subject);
+            }
+
+            // 동의 검증
+            if (!consentGiven) {
+                document.getElementById('consentCheckbox').classList.add('error');
+                document.getElementById('consentError').classList.add('show');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function startTest() {
+            if (!validateInputs()) {
+                const firstError = document.querySelector('.error, .error-message.show');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            userEmail = document.getElementById('emailInput').value.trim();
+            currentQuestion = 0;
+            answers = {};
+
+            showScreen('question');
+            renderQuestion();
+        }
+
+        // ============================================
+        // 문항 페이지 함수
+        // ============================================
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const totalQuestions = questions.length;
+
+            // 진행률 업데이트
+            document.getElementById('currentQ').textContent = currentQuestion + 1;
+            document.getElementById('progressFill').style.width = `${((currentQuestion + 1) / totalQuestions) * 100}%`;
+
+            // 카테고리 표시
+            const categoryNames = {
+                'P': '성격 특성',
+                'U': 'AI 사용 행동',
+                'L': '학습 스타일',
+                'S': '성격 유형'
+            };
+            document.getElementById('categoryText').textContent = categoryNames[q.category];
+
+            const categoryBadge = document.getElementById('categoryBadge');
+            categoryBadge.textContent = `${q.category} ${q.categoryName}`;
+            categoryBadge.className = `category-badge category-${q.category.toLowerCase()}`;
+
+            // 문항 내용
+            document.getElementById('questionNumber').textContent = `Q${currentQuestion + 1}`;
+            document.getElementById('questionText').textContent = q.text;
+
+            // 리커트 척도 렌더링
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = `
+                <div class="likert-container">
+                    <div class="likert-scale">
+                        ${likertLabels.map((label, idx) => {
+                            const score = idx + 1;
+                            const isSelected = answers[q.id] === score;
+                            return `
+                                <div class="likert-option ${isSelected ? 'selected' : ''}"
+                                     onclick="selectLikert('${q.id}', ${score})">
+                                    <div class="likert-circle">${score}</div>
+                                    <span class="likert-label">${label}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectLikert(questionId, score) {
+            answers[questionId] = score;
+
+            // 시각적 업데이트
+            document.querySelectorAll('.likert-option').forEach((item) => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // 다음 문항으로 자동 이동
+            setTimeout(() => {
+                if (currentQuestion < questions.length - 1) {
+                    currentQuestion++;
+                    renderQuestion();
+                } else {
+                    calculateAndShowResult();
+                }
+            }, 400);
+        }
+
+        // ============================================
+        // 결과 계산 함수
+        // ============================================
+        function calculateAndShowResult() {
+            // P, U, L 점수 계산 (리커트 5점 척도: 1-5)
+            let pScore = 0, uScore = 0, lScore = 0;
+
+            Object.keys(answers).forEach(key => {
+                if (key.match(/^P[1-5]$/)) {
+                    pScore += answers[key];
+                } else if (key.match(/^U[1-7]$/)) {
+                    uScore += answers[key];
+                } else if (key.match(/^L[1-5]$/)) {
+                    lScore += answers[key];
+                }
+            });
+
+            // 정규화 (0-100 스케일)
+            // P: 5문항 × 1~5점 = 5~25점 → (점수-5)/20 × 100
+            // U: 7문항 × 1~5점 = 7~35점 → (점수-7)/28 × 100
+            // L: 5문항 × 1~5점 = 5~25점 → (점수-5)/20 × 100
+            const pNorm = ((pScore - 5) / 20) * 100;
+            const uNorm = ((uScore - 7) / 28) * 100;
+            const lNorm = ((lScore - 5) / 20) * 100;
+
+            // HRS 계산
+            const hrs = Math.round((pNorm * 0.25) + (uNorm * 0.50) + (lNorm * 0.25));
+
+            // 성격 유형 결정 (S1, S2) - 리커트 5점 척도 기준
+            // S1: 꼼꼼함 중시 (≥3 = 정밀, <3 = 신속)
+            // S2: 새로운 방법 탐색 (≥3 = 탐색, <3 = 고정)
+            const s1Score = answers['S1'] || 3;
+            const s2Score = answers['S2'] || 3;
+
+            const isPrecise = s1Score >= 3;  // 정밀 vs 신속
+            const isExplore = s2Score >= 3;  // 탐색 vs 고정
+
+            let userType;
+            if (isPrecise && isExplore) {
+                userType = 'pilot';     // 정밀 + 탐색
+            } else if (isPrecise && !isExplore) {
+                userType = 'engineer';  // 정밀 + 고정
+            } else if (!isPrecise && isExplore) {
+                userType = 'surfer';    // 신속 + 탐색
+            } else {
+                userType = 'passenger'; // 신속 + 고정
+            }
+
+            // 위험 등급 결정
+            let riskLevel;
+            if (hrs >= 85) riskLevel = 'green';
+            else if (hrs >= 65) riskLevel = 'blue';
+            else if (hrs >= 45) riskLevel = 'yellow';
+            else riskLevel = 'red';
+
+            // 결과 표시
+            displayResult(userType, riskLevel, hrs, pScore, uScore, lScore);
+        }
+
+        function displayResult(userType, riskLevel, hrs, pScore, uScore, lScore) {
+            showScreen('result');
+
+            const profile = typeProfiles[userType];
+            const risk = riskLevels[riskLevel];
+
+            // 헤더
+            document.getElementById('resultIcon').textContent = profile.icon;
+            document.getElementById('resultTypeName').textContent = profile.name;
+            document.getElementById('resultTypeSubtitle').textContent = profile.subtitle;
+
+            // 위험 배지
+            const riskBadge = document.getElementById('riskBadge');
+            riskBadge.className = `risk-badge ${risk.class}`;
+            document.getElementById('riskIcon').textContent = risk.icon;
+            document.getElementById('riskText').textContent = `${risk.text} (HRS ${hrs}점)`;
+
+            // 상세 내용
+            document.getElementById('resultDescription').textContent = profile.description;
+
+            document.getElementById('strengthsList').innerHTML =
+                profile.strengths.map(s => `<li>${s}</li>`).join('');
+
+            document.getElementById('weaknessesList').innerHTML =
+                profile.weaknesses.map(w => `<li>${w}</li>`).join('');
+
+            document.getElementById('adviceList').innerHTML =
+                profile.advice.map(a => `<li>${a}</li>`).join('');
+
+            // 점수
+            document.getElementById('pScore').textContent = pScore;
+            document.getElementById('uScore').textContent = uScore;
+            document.getElementById('lScore').textContent = lScore;
+
+            // 데이터 저장
+            submitData(userType, riskLevel, hrs, pScore, uScore, lScore);
+        }
+
+        // ============================================
+        // 데이터 제출
+        // ============================================
+        async function submitData(userType, riskLevel, hrs, pScore, uScore, lScore) {
+            if (GOOGLE_SCRIPT_URL.includes('YOUR_GOOGLE_APPS_SCRIPT_URL_HERE')) {
+                console.log('Google Apps Script URL not configured.');
+                return;
+            }
+
+            const payload = {
+                timestamp: new Date().toISOString(),
+                age: userAge,
+                subjects: userSubjects.join(', '),
+                email: userEmail,
+                consent: consentGiven,
+                answers: answers,
+                pScore: pScore,
+                uScore: uScore,
+                lScore: lScore,
+                hrs: hrs,
+                userType: userType,
+                riskLevel: riskLevel
+            };
+
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) {
+                console.error('Submission error:', error);
+            }
+        }
+
+        // ============================================
+        // 결과 공유 및 재시작
+        // ============================================
+        function copyResult() {
+            const typeName = document.getElementById('resultTypeName').textContent;
+            const riskText = document.getElementById('riskText').textContent;
+            const description = document.getElementById('resultDescription').textContent;
+
+            const text = `🧒 우리아이 AI타입 진단 결과
+
+🎯 유형: ${typeName}
+📊 ${riskText}
+
+${description}
+
+👉 나도 검사해보기: ${window.location.href}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('결과가 복사되었습니다!');
+            }).catch(() => {
+                showToast('복사에 실패했습니다');
+            });
+        }
+
+        function restartTest() {
+            // 상태 초기화
+            userAge = null;
+            userSubjects = [];
+            userEmail = '';
+            consentGiven = false;
+            currentQuestion = 0;
+            answers = {};
+
+            // UI 초기화
+            document.getElementById('ageInput').value = '';
+            document.getElementById('ageInput').classList.remove('error');
+            document.getElementById('ageError').classList.remove('show');
+
+            document.querySelectorAll('.subject-option').forEach(opt => {
+                opt.classList.remove('selected');
+                opt.querySelector('input').checked = false;
+            });
+            document.getElementById('subjectError').classList.remove('show');
+
+            document.getElementById('consentInput').checked = false;
+            document.getElementById('consentCheckbox').classList.remove('checked', 'error');
+            document.getElementById('consentError').classList.remove('show');
+
+            document.getElementById('emailInput').value = '';
+
+            showScreen('landing');
+        }
+
+        // ============================================
+        // 이벤트 리스너 초기화
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 과목 선택 이벤트
+            document.querySelectorAll('.subject-option').forEach(opt => {
+                opt.addEventListener('click', () => toggleSubject(opt));
+            });
+        });
+    </script>
+</body>
+</html>
