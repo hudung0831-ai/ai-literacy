@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우리아이 AI타입 진단검사</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #F5F0EB;
+            --card: #FFFFFF;
+            --ink: #1B1B3A;
+            --ink-mid: #4A4A6A;
+            --ink-light: #9898B0;
+            --coral: #FF6B6B;
+            --blue: #4E7CFF;
+            --yellow: #FFD93D;
+            --mint: #6BCB77;
+            --violet: #B07CFF;
+            --orange: #FF9F43;
+            --shadow: 0 8px 40px rgba(27, 27, 58, 0.08);
+            --shadow-hover: 0 12px 48px rgba(27, 27, 58, 0.14);
+            --radius: 20px;
+            --radius-sm: 14px;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            color: var(--ink);
+        }
+
+        /* ================================================
+           GEOMETRIC DECORATIONS
+           ================================================ */
+        .geo-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .geo {
+            position: absolute;
+            animation: geoFloat ease-in-out infinite;
+        }
+
+        .geo-square {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--coral);
+            transform: rotate(45deg);
+            opacity: 0.25;
+        }
+
+        .geo-square.blue { border-color: var(--blue); }
+        .geo-square.violet { border-color: var(--violet); }
+        .geo-square.yellow { border-color: var(--yellow); }
+
+        .geo-circle {
+            width: 60px;
+            height: 60px;
+            border: 3px dashed var(--blue);
+            border-radius: 50%;
+            opacity: 0.2;
+        }
+
+        .geo-circle.coral { border-color: var(--coral); }
+        .geo-circle.mint { border-color: var(--mint); }
+        .geo-circle.orange { border-color: var(--orange); }
+
+        .geo-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--yellow);
+            opacity: 0.3;
+        }
+
+        .geo-dot.coral { background: var(--coral); }
+        .geo-dot.blue { background: var(--blue); }
+        .geo-dot.mint { background: var(--mint); }
+        .geo-dot.violet { background: var(--violet); }
+
+        .geo-triangle {
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-bottom: 32px solid var(--mint);
+            opacity: 0.2;
+        }
+
+        .geo-triangle.coral { border-bottom-color: var(--coral); }
+        .geo-triangle.blue { border-bottom-color: var(--blue); }
+        .geo-triangle.violet { border-bottom-color: var(--violet); }
+
+        .geo-half {
+            width: 50px;
+            height: 25px;
+            background: var(--orange);
+            border-radius: 50px 50px 0 0;
+            opacity: 0.2;
+        }
+
+        .geo-half.blue { background: var(--blue); }
+        .geo-half.coral { background: var(--coral); }
+
+        @keyframes geoFloat {
+            0%, 100% { transform: var(--geo-base) translateY(0px); }
+            50% { transform: var(--geo-base) translateY(-20px); }
+        }
+
+        /* ================================================
+           PROGRESS BAR (Top)
+           ================================================ */
+        .progress-top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: rgba(27, 27, 58, 0.06);
+            z-index: 100;
+        }
+
+        .progress-top-fill {
+            height: 100%;
+            background: var(--coral);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* ================================================
+           STEP COUNTER
+           ================================================ */
+        .step-counter {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            background: var(--ink);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .step-counter.bump {
+            animation: bump 0.4s ease;
+        }
+
+        @keyframes bump {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        /* ================================================
+           BACK BUTTON
+           ================================================ */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 24px;
+            width: 44px;
+            height: 44px;
+            background: var(--card);
+            border: 2px solid rgba(27, 27, 58, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s ease;
+            color: var(--ink);
+        }
+
+        .back-btn:hover {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            transform: scale(1.05);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ================================================
+           SLIDES
+           ================================================ */
+        .slides {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(40px) scale(0.95);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .slide.exit-up {
+            opacity: 0;
+            transform: translateY(-60px) scale(0.9);
+        }
+
+        .slide.exit-down {
+            opacity: 0;
+            transform: translateY(60px) scale(0.9);
+        }
+
+        .slide.result-slide {
+            overflow-y: auto;
+            align-items: flex-start;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+
+        /* ================================================
+           CARD
+           ================================================ */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 40px 32px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(27, 27, 58, 0.04);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -18px;
+            right: -18px;
+            width: 36px;
+            height: 36px;
+            background: var(--yellow);
+            transform: rotate(45deg);
+            opacity: 0.6;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--coral);
+            opacity: 0.3;
+        }
+
+        /* ================================================
+           WELCOME SLIDE
+           ================================================ */
+        .welcome-card {
+            text-align: center;
+            padding: 48px 32px;
+        }
+
+        .welcome-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 28px;
+            background: var(--yellow);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            animation: breathe 3s ease-in-out infinite;
+            box-shadow: 6px 6px 0 var(--coral);
+            position: relative;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .welcome-card h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--ink);
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .welcome-card h1 em {
+            font-style: normal;
+            color: var(--coral);
+        }
+
+        .welcome-card p {
+            font-size: 16px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .welcome-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 36px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .meta-icon.t-coral { background: var(--coral); color: white; }
+        .meta-icon.t-blue { background: var(--blue); color: white; }
+        .meta-icon.t-mint { background: var(--mint); color: white; }
+
+        .meta-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink-light);
+        }
+
+        /* ================================================
+           CTA BUTTON
+           ================================================ */
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 48px;
+            background: var(--ink);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            box-shadow: 4px 4px 0 var(--coral);
+            position: relative;
+        }
+
+        .cta-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--coral);
+        }
+
+        .cta-btn:active {
+            transform: translate(0, 0);
+            box-shadow: 2px 2px 0 var(--coral);
+        }
+
+        .cta-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-btn:hover svg {
+            transform: translateX(4px);
+        }
+
+        /* ================================================
+           QUESTION CARD
+           ================================================ */
+        .q-category {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .q-cat-P { background: rgba(255, 107, 107, 0.12); color: var(--coral); }
+        .q-cat-U { background: rgba(78, 124, 255, 0.12); color: var(--blue); }
+        .q-cat-L { background: rgba(107, 203, 119, 0.12); color: var(--mint); }
+        .q-cat-S { background: rgba(176, 124, 255, 0.12); color: var(--violet); }
+
+        .q-number {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .q-number span {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: white;
+            border-radius: 10px;
+        }
+
+        .q-num-coral { background: var(--coral); }
+        .q-num-blue { background: var(--blue); }
+        .q-num-yellow { background: var(--yellow); color: var(--ink) !important; }
+        .q-num-mint { background: var(--mint); }
+        .q-num-violet { background: var(--violet); }
+        .q-num-orange { background: var(--orange); }
+
+        .q-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .q-hint {
+            font-size: 14px;
+            color: var(--ink-light);
+            margin-bottom: 28px;
+        }
+
+        /* ================================================
+           LIKERT OPTIONS
+           ================================================ */
+        .likert-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .likert-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: var(--bg);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .likert-btn:hover {
+            border-color: var(--ink);
+            transform: translateX(6px);
+            box-shadow: -4px 0 0 var(--coral);
+        }
+
+        .likert-btn.selected {
+            border-color: var(--ink);
+            background: var(--card);
+            transform: translateX(6px);
+            box-shadow: -4px 0 0 var(--blue);
+        }
+
+        .likert-emoji {
+            font-size: 28px;
+            flex-shrink: 0;
+            width: 40px;
+            text-align: center;
+            transition: transform 0.25s ease;
+        }
+
+        .likert-btn:hover .likert-emoji,
+        .likert-btn.selected .likert-emoji {
+            transform: scale(1.2);
+        }
+
+        .likert-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink-mid);
+            flex: 1;
+        }
+
+        .likert-btn.selected .likert-label {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .likert-check {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .likert-btn.selected .likert-check {
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .likert-check svg {
+            width: 14px;
+            height: 14px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .likert-btn.selected .likert-check svg {
+            opacity: 1;
+        }
+
+        /* ================================================
+           RESULT SLIDE
+           ================================================ */
+        .result-card {
+            text-align: center;
+            padding: 40px 28px;
+            max-width: 480px;
+        }
+
+        .result-emoji {
+            font-size: 72px;
+            margin-bottom: 20px;
+            animation: resultPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes resultPop {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .result-title {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .result-type-en {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-light);
+            margin-bottom: 8px;
+        }
+
+        .result-slogan {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-mid);
+            font-style: italic;
+            margin-bottom: 24px;
+        }
+
+        /* Axis Tags */
+        .axis-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .axis-tag {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .axis-tag.high {
+            background: rgba(78, 124, 255, 0.12);
+            color: var(--blue);
+        }
+
+        .axis-tag.low {
+            background: rgba(255, 107, 107, 0.12);
+            color: var(--coral);
+        }
+
+        /* Level Badge */
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            border: 2px solid;
+        }
+
+        .level-green { background: #e8f8ee; color: #155724; border-color: var(--mint); }
+        .level-blue { background: #e8f0ff; color: #1a3a6b; border-color: var(--blue); }
+        .level-yellow { background: #fff8e1; color: #6b5200; border-color: var(--yellow); }
+        .level-red { background: #ffeaea; color: #6b1a1a; border-color: var(--coral); }
+
+        /* Score Gauge */
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 120px;
+            margin: 0 auto 28px;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #eae6e0;
+            stroke-width: 14;
+            stroke-linecap: round;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gauge-score {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--ink);
+        }
+
+        .gauge-score small {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink-light);
+        }
+
+        /* Result Sections */
+        .result-section {
+            text-align: left;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+
+        .result-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 10px;
+        }
+
+        .result-section p {
+            font-size: 14px;
+            color: var(--ink-mid);
+            line-height: 1.8;
+        }
+
+        .result-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .result-section li {
+            font-size: 14px;
+            color: var(--ink-mid);
+            line-height: 1.7;
+            padding-left: 16px;
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .result-section li::before {
+            content: '\2022';
+            position: absolute;
+            left: 0;
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        .result-section.guide-section {
+            border-left: 4px solid var(--mint);
+        }
+
+        .result-section.guide-section li::before {
+            color: var(--mint);
+        }
+
+        /* Result Actions */
+        .result-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .result-actions .cta-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 16px 32px;
+            font-size: 16px;
+        }
+
+        .btn-outline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 32px;
+            background: transparent;
+            color: var(--ink);
+            border: 2px solid var(--ink);
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.25s ease;
+        }
+
+        .btn-outline:hover {
+            background: var(--yellow);
+            border-color: var(--yellow);
+        }
+
+        /* ================================================
+           CONFETTI
+           ================================================ */
+        .confetti-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            top: -10px;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(0) rotateZ(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotateZ(720deg); opacity: 0; }
+        }
+
+        /* ================================================
+           TOAST
+           ================================================ */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--ink);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 4px 4px 0 var(--coral);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ================================================
+           KEYBOARD HINT
+           ================================================ */
+        .key-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--ink);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .key-hint.visible { opacity: 1; }
+
+        .key-hint kbd {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* ================================================
+           RESPONSIVE
+           ================================================ */
+        @media (max-width: 480px) {
+            .slide { padding: 16px; }
+            .slide.result-slide { padding-top: 40px; padding-bottom: 40px; }
+            .card { padding: 28px 20px; }
+            .welcome-card { padding: 36px 20px; }
+            .welcome-card h1 { font-size: 24px; }
+            .q-text { font-size: 18px; }
+            .result-card { padding: 32px 20px; }
+            .result-title { font-size: 22px; }
+            .likert-btn { padding: 12px 14px; gap: 12px; }
+            .step-counter { right: 16px; top: 16px; font-size: 13px; padding: 6px 14px; }
+            .back-btn { left: 16px; top: 16px; width: 40px; height: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Geometric Decoration Layer -->
+    <div class="geo-canvas" id="geoCanvas"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-top">
+        <div class="progress-top-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <!-- Step Counter -->
+    <div class="step-counter" id="stepCounter" style="display: none;">
+        <span id="stepText">1 / 21</span>
+    </div>
+
+    <!-- Back Button -->
+    <div class="back-btn" id="backBtn" style="display: none;" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+    </div>
+
+    <!-- Slides -->
+    <div class="slides" id="slides">
+
+        <!-- Slide 0: Welcome -->
+        <div class="slide active" data-slide="0">
+            <div class="card welcome-card">
+                <div class="welcome-icon">🧠</div>
+                <h1>우리 아이의<br><em>AI 타입</em><br>진단검사</h1>
+                <p>보호자가 관찰한 아이의 AI 사용 패턴을<br>21가지 질문으로 진단합니다.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <div class="meta-icon t-coral">5'</div>
+                        <span class="meta-label">소요 시간</span>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-icon t-blue">21</div>
+                        <span class="meta-label">문항 수</span>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-icon t-mint">16</div>
+                        <span class="meta-label">AI 유형</span>
+                    </div>
+                </div>
+                <button class="cta-btn" onclick="startSurvey()">
+                    시작하기
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Keyboard Hint -->
+    <div class="key-hint" id="keyHint">
+        <kbd>1</kbd>~<kbd>5</kbd> 숫자키 응답 &nbsp;|&nbsp; <kbd>←</kbd> 이전
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // 1. Question Data — 21문항 (P5 + U7 + L5 + S4)
+        // ============================================
+        const catLabels = { P: '성격 특성', U: 'AI 사용 행동', L: '학습 스타일', S: 'AI 사용 유형' };
+
+        const questions = [
+            // P. 성격 특성 (5문항)
+            { id: 'P1', cat: 'P', text: '아이는 어른이나 권위자가 알려주는 정보도 의심해보는 편입니다.', hint: '💡 아이의 평소 성격을 떠올려 주세요', color: 'coral' },
+            { id: 'P2', cat: 'P', text: '아이는 정답을 모르는 상황을 불안해하지 않고 받아들입니다.', hint: '💡 아이의 평소 성격을 떠올려 주세요', color: 'coral' },
+            { id: 'P3', cat: 'P', text: '아이는 친구들과 의견이 달라도 자기 생각을 표현합니다.', hint: '💡 아이의 평소 성격을 떠올려 주세요', color: 'coral' },
+            { id: 'P4', cat: 'P', text: '아이는 잘못된 정보를 믿었던 경험이 있으면 원인을 파악하려 합니다.', hint: '💡 아이의 평소 성격을 떠올려 주세요', color: 'coral' },
+            { id: 'P5', cat: 'P', text: '아이는 새로운 것을 판단할 때 다른 사람 의견과 별개로 독자적으로 결정합니다.', hint: '💡 아이의 평소 성격을 떠올려 주세요', color: 'coral' },
+            // U. AI 사용 행동 (7문항)
+            { id: 'U1', cat: 'U', text: '아이는 AI가 준 답변을 다른 출처에서 확인해봅니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U2', cat: 'U', text: '아이는 AI 없이도 과제를 무리 없이 수행할 수 있습니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U3', cat: 'U', text: '아이는 AI가 틀린 정보를 만들어낼 수 있다는 것을 알고 주의합니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U4', cat: 'U', text: '아이는 AI 답변을 그대로 쓰지 않고 자기 말로 바꾸거나 수정합니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U5', cat: 'U', text: '아이는 AI 답변과 자기 생각이 다르면 자기 판단을 유지합니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U6', cat: 'U', text: '아이는 모든 과제가 아니라 특정 상황에서만 선택적으로 AI를 사용합니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            { id: 'U7', cat: 'U', text: '아이는 AI가 틀린 정보를 준 경험 이후 검증하는 습관이 생겼습니다.', hint: '🤖 아이의 AI 사용 습관을 떠올려 주세요', color: 'blue' },
+            // L. 학습 스타일 (5문항)
+            { id: 'L1', cat: 'L', text: '아이는 새로운 것을 배울 때 여러 출처를 비교합니다.', hint: '📚 아이의 학습 방식을 떠올려 주세요', color: 'mint' },
+            { id: 'L2', cat: 'L', text: '아이는 단순 암기보다 원리와 개념 이해를 중시합니다.', hint: '📚 아이의 학습 방식을 떠올려 주세요', color: 'mint' },
+            { id: 'L3', cat: 'L', text: '아이는 읽거나 듣는 정보에서 오류나 모순을 잘 감지합니다.', hint: '📚 아이의 학습 방식을 떠올려 주세요', color: 'mint' },
+            { id: 'L4', cat: 'L', text: '아이는 학습할 때 스스로 궁금한 점을 질문으로 만듭니다.', hint: '📚 아이의 학습 방식을 떠올려 주세요', color: 'mint' },
+            { id: 'L5', cat: 'L', text: '아이는 새 정보가 기존 지식과 충돌하면 어느 쪽이 맞는지 조사합니다.', hint: '📚 아이의 학습 방식을 떠올려 주세요', color: 'mint' },
+            // S. 유형 분류 (4문항)
+            { id: 'S1', cat: 'S', text: '아이는 빨리 끝내는 것보다 꼼꼼하게 확인하는 것을 중시합니다.', hint: '🔬 아이의 작업 스타일을 떠올려 주세요', color: 'violet' },
+            { id: 'S2', cat: 'S', text: '아이는 익숙한 방법보다 새로운 방법을 탐색하는 것을 좋아합니다.', hint: '🔬 아이의 작업 스타일을 떠올려 주세요', color: 'violet' },
+            { id: 'S3', cat: 'S', text: '아이는 AI에게 질문하기 전에 자기 나름의 방향이나 구조를 먼저 정리합니다.', hint: '🔬 아이의 작업 스타일을 떠올려 주세요', color: 'violet' },
+            { id: 'S4', cat: 'S', text: '아이의 결과물(글, 발표 등)에서 아이 고유의 개성이나 말투가 분명히 드러납니다.', hint: '🔬 아이의 작업 스타일을 떠올려 주세요', color: 'violet' },
+        ];
+
+        // ============================================
+        // 2. 16-Type Classification Map & Data
+        // ============================================
+        const typeMap = {
+            '1111': 'A1', '1110': 'A2', '1101': 'A3', '1100': 'A4',
+            '1011': 'B1', '1010': 'B2', '1001': 'B3', '1000': 'B4',
+            '0111': 'C1', '0110': 'C2', '0101': 'C3', '0100': 'C4',
+            '0011': 'D1', '0010': 'D2', '0001': 'D3', '0000': 'D4',
+        };
+
+        const typeData = {
+            A1: {
+                name: '마에스트로', nameEn: 'Maestro', icon: '🎼',
+                slogan: 'AI가 연주하고 내가 지휘한다.',
+                desc: '모든 축에서 최고 자율. AI를 완전히 통제하며 사용합니다. 다각도로 탐색하고, 정밀하게 검증하며, 문제의 방향을 먼저 설계하고, 결과물에 자기만의 색이 뚜렷합니다.',
+                strengths: ['여러 출처를 비교하고 교차 검증하는 습관', 'AI 출력의 오류를 스스로 탐지하는 능력', '자신만의 판단 기준을 유지하는 독립성', '결과물에 개성과 창의성이 드러남'],
+                cautions: ['과잉 검증으로 효율이 떨어질 수 있음', '완벽주의 성향으로 결정이 늦어질 수 있음'],
+                guide: ['현재 습관을 유지하도록 격려해주세요', '다른 친구들에게 AI 활용법을 공유하도록 권해보세요', '새로운 AI 도구를 탐색해볼 기회를 주셔도 좋습니다']
+            },
+            A2: {
+                name: '항해사', nameEn: 'Navigator', icon: '🧭',
+                slogan: '전략은 완벽하지만 \'나\'는 어디 있지?',
+                desc: '주도적으로 AI를 활용하고 검증도 철저하지만, AI의 표현 양식을 전략적으로 흡수합니다. 결과물이 세련되고 완성도가 높지만, AI가 쓴 것 같은 느낌이 납니다.',
+                strengths: ['전략적이고 효율적인 AI 활용', '높은 검증 능력과 다양한 출처 비교', '체계적 사고와 논리적 구성력'],
+                cautions: ['자기 표현의 고유성이 점차 희석될 위험', 'AI의 문체에 자신도 모르게 동화됨', '장기적으로 자기 목소리를 찾기 어려워질 수 있음'],
+                guide: ['"이 부분은 네 생각이야, AI 생각이야?" 물어봐주세요', 'AI 없이 자유 글쓰기를 해보는 시간을 만들어주세요', '아이만의 표현이 나왔을 때 구체적으로 칭찬해주세요']
+            },
+            A3: {
+                name: '감정사', nameEn: 'Appraiser', icon: '🔍',
+                slogan: 'AI가 쓴 기사, 팩트와 문체는 내가 정한다.',
+                desc: '시작은 AI에 맡기지만, 결과를 다양한 출처와 꼼꼼히 대조하고, 최종적으로 자기 언어로 재구성합니다. 검증력과 표현력은 우수하나 문제 설계를 스스로 하지 않습니다.',
+                strengths: ['뛰어난 검증 능력과 비교 분석력', 'AI 출력을 자기 말로 재구성하는 능력', '다양한 정보원을 활용하는 습관'],
+                cautions: ['초기 사고 설계를 AI에 의존하여 문제 구조화 능력이 약화될 수 있음', '"어떻게 풀지?"가 아니라 "AI가 뭐라고 하지?"로 시작하는 패턴'],
+                guide: ['AI에 물어보기 전에 "먼저 어떻게 접근할지 생각해볼까?" 물어봐주세요', '문제 해결의 첫 단계를 스스로 정하는 연습을 시켜주세요', '계획 → AI 활용 → 검증의 3단계 습관을 만들어주세요']
+            },
+            A4: {
+                name: '큐레이터', nameEn: 'Curator', icon: '🖼️',
+                slogan: '최고의 답변을 골라내는 탁월한 안목.',
+                desc: 'AI에 위임하고 AI 표현도 그대로 활용하지만, 선별 과정이 정밀합니다. 여러 AI 출력을 비교해 최선의 것을 고릅니다. 고르는 능력은 있으나 만드는 능력이 부족합니다.',
+                strengths: ['정보 선별 능력과 비교 분석력', '여러 출력 중 최적을 판단하는 감각', '품질에 대한 기준이 존재함'],
+                cautions: ['생산자가 아닌 소비자에 머무를 위험', '자기 생각과 표현이 모두 AI 의존', '판별은 하지만 창출하지 못하는 상태'],
+                guide: ['AI가 준 답변을 "그대로 쓰지 말고 네 말로 바꿔봐" 연습시켜주세요', '먼저 자기 답을 써보고 그 다음 AI와 비교하는 순서를 만들어주세요', '선별 능력은 칭찬하되 자기 표현 훈련을 병행해주세요']
+            },
+            B1: {
+                name: '도예가', nameEn: 'Potter', icon: '🏺',
+                slogan: '익숙한 물레 위에서 빚어낸 독창성.',
+                desc: '한 가지 방법에 정통하며, 그 방법 안에서 검증이 철저하고, 자기 사고와 표현을 분명히 유지합니다. 새로운 도구를 탐색하지 않을 뿐, 쓰는 도구는 완벽히 통제합니다.',
+                strengths: ['깊은 전문성과 일관된 품질', '강한 표현 정체성과 독자적 판단', '한 분야에서의 높은 완성도'],
+                cautions: ['AI 도구의 변화에 적응이 느림', '시야가 좁아 새로운 접근법을 놓칠 수 있음', '익숙한 방법이 더 이상 유효하지 않을 때 취약'],
+                guide: ['가끔 새로운 AI 도구나 방법을 시도해보도록 권해주세요', '"다른 방법은 없을까?"라고 물어보는 습관을 만들어주세요', '다양한 출처를 비교해보는 경험을 주세요']
+            },
+            B2: {
+                name: '기관사', nameEn: 'Engineer', icon: '🚂',
+                slogan: '정해진 선로를 오차 없이 관리한다.',
+                desc: '정해진 경로를 정밀하게 운행합니다. 체계적이고 주도적이지만, 표현에서 AI 스타일을 차용합니다. 안정적이고 예측 가능하지만 고유성이 부족합니다.',
+                strengths: ['체계적이고 일관된 접근', '정해진 절차를 꼼꼼히 따르는 성실함', 'AI 출력을 주의 깊게 확인하는 습관'],
+                cautions: ['새로운 정보원이나 방법을 탐색하지 않음', 'AI 표현을 무의식적으로 차용', '변화하는 AI 환경에 적응이 느릴 수 있음'],
+                guide: ['다양한 AI 도구를 비교해보는 기회를 주세요', 'AI의 답변을 자기 말로 바꿔보게 해주세요', '"왜 이 방법만 쓰는지" 함께 이야기해보세요']
+            },
+            B3: {
+                name: '보안관', nameEn: 'Sheriff', icon: '🛡️',
+                slogan: '한 치의 오류도 내 구역에선 허용 못 해.',
+                desc: 'AI에 작업을 맡기되, 익숙한 검증 방법으로 결과를 꼼꼼히 감시합니다. 자기 언어로 옮기는 능력은 있습니다. 수동적이지만 무비판적이지는 않습니다.',
+                strengths: ['품질 감시 능력', 'AI 출력을 자기 표현으로 재구성하는 의지', '정확성에 대한 기준이 존재함'],
+                cautions: ['주도적 사고 기회 부족', '감시자에 머무르며 설계자로 성장하지 못할 위험', '방법의 다양성이 부족'],
+                guide: ['AI를 쓰기 전에 "먼저 네 방향을 정해볼까?" 연습시켜주세요', '검증 능력은 칭찬하되 시작 단계의 주도성을 키워주세요', '가끔 다른 방법으로 검증해보는 경험을 주세요']
+            },
+            B4: {
+                name: '서기', nameEn: 'Scribe', icon: '📋',
+                slogan: '정확하게 기록하되, 생각은 AI에게.',
+                desc: 'AI에 위임하고 AI 표현을 그대로 쓰지만, 정확성만큼은 꼼꼼히 확인합니다. 사실관계는 검증하되, 구조와 표현은 AI의 것입니다.',
+                strengths: ['사실 확인 습관', '정보의 정확성에 대한 기본적 주의'],
+                cautions: ['사고와 표현 모두 AI 의존', '검증은 하지만 사실관계에만 한정', '자기 판단과 표현이 모두 외주화된 상태'],
+                guide: ['"맞는지 확인하는 것은 잘했어"라고 검증 습관은 격려해주세요', 'AI 답변의 구조나 논리도 따져보도록 질문해주세요', '먼저 자기 생각을 정리하고 그 다음 AI를 쓰는 순서를 만들어주세요']
+            },
+            C1: {
+                name: '발명가', nameEn: 'Inventor', icon: '💡',
+                slogan: '번뜩이는 아이디어, 검증은 다음 문제!',
+                desc: '빠르게 여러 방향을 탐색하며, 주도적으로 AI를 사용하고, 결과물에 개성이 뚜렷합니다. 아이디어 생산력은 뛰어나지만 검증이 빈약합니다.',
+                strengths: ['창의적 발상과 아이디어 생산력', '빠른 탐색과 새로운 접근법 시도', '강한 주도성과 뚜렷한 개성'],
+                cautions: ['검증 부재로 오류가 축적될 위험', '빠른 판단이 잘못된 확신으로 이어질 수 있음', '깊이보다 넓이에 치우침'],
+                guide: ['창의성은 크게 격려하되 "이게 맞는지 한 번 확인해볼까?" 습관을 추가해주세요', '하나의 아이디어를 깊이 파고드는 프로젝트를 경험하게 해주세요', 'AI가 틀릴 수 있는 사례를 함께 찾아보세요']
+            },
+            C2: {
+                name: '서퍼', nameEn: 'Surfer', icon: '🏄',
+                slogan: '세상의 모든 정보를 누구보다 빠르게.',
+                desc: '여기저기 빠르게 탐색하며 주도적으로 AI를 사용하지만, 깊이 확인하지 않고 AI 표현도 흡수합니다. 정보의 파도를 타지만 발밑을 보지 않습니다.',
+                strengths: ['빠른 정보 습득 능력', '다양한 도구를 거부감 없이 활용', '새로운 것에 대한 개방적 태도'],
+                cautions: ['정보 검증 없이 넘어가는 습관', 'AI 표현을 자기 것으로 착각할 위험', '잘못된 정보를 자신 있게 사용할 가능성'],
+                guide: ['AI 답변을 받으면 "이게 맞는지 어떻게 확인할까?" 물어봐주세요', '속도보다 정확성이 중요한 과제를 경험하게 해주세요', '자기 말로 바꿔 설명하게 하는 연습을 시켜주세요']
+            },
+            C3: {
+                name: '보물 수집가', nameEn: 'Collector', icon: '📦',
+                slogan: '일단 다 모은 뒤 내 언어로 요약한다.',
+                desc: 'AI에 다양한 것을 요청해 수집하지만 검증 없이 넘어갑니다. 다만 수집한 것을 자기 말로 정리하려는 의지는 있습니다. 양은 많지만 질이 불확실합니다.',
+                strengths: ['넓은 정보 수집 범위', '표현 재구성 의지', '호기심과 관심 분야의 넓이'],
+                cautions: ['미검증 정보의 대량 축적', '검증 없이 자기 말로 바꾸면 오류도 자기 것이 됨', '아는 것이 많아 보이지만 정확도가 낮을 수 있음'],
+                guide: ['수집한 것 중 3개만 골라 "이게 정말 맞는지" 확인하는 연습을 시켜주세요', '양보다 질을 중시하는 과제를 경험하게 해주세요', '"어디서 본 건데?" 출처를 물어보는 습관을 만들어주세요']
+            },
+            C4: {
+                name: '표류자', nameEn: 'Drifter', icon: '🌊',
+                slogan: 'AI가 보여주는 세상, 재밌는 구경이에요.',
+                desc: '방향 없이 AI에 위임하며, 이곳저곳 돌아다니지만 검증도 표현도 AI에 의존합니다. 호기심은 있으나 인지적 닻이 없습니다. 탐색은 하되 아무것도 남지 않는 상태입니다.',
+                strengths: ['AI에 대한 거부감 없음', '넓은 접촉면과 기본적 호기심'],
+                cautions: ['인지적 방향성 부재', '탐색은 하되 학습이 되지 않는 위험', '자기 판단과 자기 표현 모두 약함'],
+                guide: ['"오늘 AI로 뭘 했어?" 대화를 통해 방향성을 함께 정해주세요', '하나의 주제를 정해 깊이 파고드는 미니 프로젝트를 해보게 하세요', 'AI 답변을 자기 말로 한 줄 정리하는 연습부터 시작해주세요']
+            },
+            D1: {
+                name: '해결사', nameEn: 'Fixer', icon: '⚡',
+                slogan: '방법은 하나면 충분, 해결은 순식간!',
+                desc: '빠르게, 익숙한 방법으로, 주도적으로 AI를 사용하며 자기 표현을 유지합니다. 검증은 안 하지만 자기 판단력은 확고합니다. 효율은 높으나 확증편향에 빠지기 쉽습니다.',
+                strengths: ['명확한 주관과 빠른 의사결정', '효율적 작업 처리', '개성 있는 표현 유지'],
+                cautions: ['검증 부재로 확증편향에 빠질 위험', '자기가 맞다고 생각하면 AI도 확인 안 함', '새로운 방법을 알지 못해 효율의 천장이 존재'],
+                guide: ['"네 생각이 맞는지 AI한테 반대 의견도 물어볼까?" 제안해보세요', '가끔 다른 방법으로 같은 과제를 해보게 해주세요', '빠른 판단력은 칭찬하되 검증 한 단계를 추가하도록 도와주세요']
+            },
+            D2: {
+                name: '조립가', nameEn: 'Assembler', icon: '🔧',
+                slogan: 'AI 부품들을 빠르게 조립해 완성한다.',
+                desc: 'AI 출력을 빠르게 조립해 결과물을 만듭니다. 주도적으로 지시하지만, 방법은 고정적이고 AI 표현을 그대로 활용합니다. 속도와 생산성은 높으나 자기 색이 없습니다.',
+                strengths: ['높은 생산성과 빠른 결과물 산출', 'AI에 대한 효율적 지시 능력', '목표 지향적 작업 처리'],
+                cautions: ['표현 정체성 상실', '검증 부재로 품질 불확실', 'AI가 만든 것을 빠르게 붙여넣는 패턴 고착'],
+                guide: ['결과물에서 "네가 직접 쓴 부분은 어디야?" 물어봐주세요', '속도를 줄이고 자기 표현을 넣는 연습을 해보게 해주세요', 'AI 답변을 그대로 쓰지 않는 규칙을 함께 정해보세요']
+            },
+            D3: {
+                name: '관객', nameEn: 'Spectator', icon: '👀',
+                slogan: '나는 구경할 테니, AI 네가 다 해봐.',
+                desc: 'AI에 맡기고 결과를 수동적으로 수령합니다. 자기 말로 바꾸려는 최소한의 의지는 있으나, 주도성과 검증이 모두 결여되어 있습니다.',
+                strengths: ['최소한의 표현 독립성', 'AI 사용에 대한 기본적 접근성'],
+                cautions: ['거의 모든 인지 과정이 AI에 위임된 상태', '자기가 직접 하면 할 수 있으나 하지 않는 패턴', '수동성이 습관으로 고착될 위험'],
+                guide: ['"AI 없이 먼저 해볼까?" 작은 과제부터 시작해주세요', '아이가 스스로 한 부분을 구체적으로 칭찬해주세요', 'AI 사용 전 5분 먼저 생각해보는 규칙을 만들어보세요']
+            },
+            D4: {
+                name: '히치하이커', nameEn: 'Hitchhiker', icon: '🚌',
+                slogan: '목적지도, 운전도 AI 마음대로',
+                desc: '모든 축에서 최소 자율. AI에 완전히 위임하고, 검증도 탐색도 주도도 표현도 없습니다. AI 환각(hallucination)에 가장 취약한 유형입니다.',
+                strengths: ['AI 사용에 대한 심리적 장벽이 없음'],
+                cautions: ['AI 출력을 무비판적으로 수용', '자신의 판단력 발달이 저해될 위험', '잘못된 정보를 그대로 사용할 가능성 높음', '인지적 자율성 전면 상실 위험'],
+                guide: ['AI 사용을 잠시 줄이고 직접 해결하는 경험을 쌓아주세요', '실패해도 괜찮다는 안전한 환경을 만들어주세요', 'AI 답변을 자기 말로 한 줄 정리하는 것부터 시작해주세요', 'AI가 틀릴 수 있다는 사례를 함께 찾아보세요', '일주일에 하루는 \'AI 없는 날\'로 정해보세요']
+            }
+        };
+
+        // ============================================
+        // 3. HRS Risk Levels
+        // ============================================
+        const riskLevels = [
+            { range: [85, 100], label: '고자율군', badge: 'level-green', barColor: 'var(--mint)', desc: '자율적 사고를 유지하고 있어요.' },
+            { range: [65, 84],  label: '안전군',   badge: 'level-blue',  barColor: 'var(--blue)', desc: '건강한 활용 패턴이에요.' },
+            { range: [45, 64],  label: '주의군',   badge: 'level-yellow', barColor: 'var(--yellow)', desc: '습관 조정이 필요한 시기예요.' },
+            { range: [0, 44],   label: '위험군',   badge: 'level-red',   barColor: 'var(--coral)', desc: '즉각적 개입이 필요해요.' },
+        ];
+
+        // ============================================
+        // 4. Constants
+        // ============================================
+        const likertLabels = ['전혀 그렇지 않다', '그렇지 않다', '보통이다', '그렇다', '매우 그렇다'];
+        const likertEmojis = ['😔', '🙁', '😐', '🙂', '😊'];
+        const axisLabels = [
+            ['신속형', '정밀형'],
+            ['고정형', '탐색형'],
+            ['위탁형', '설계형'],
+            ['범용형', '고유형']
+        ];
+
+        // ============================================
+        // 5. State
+        // ============================================
+        let currentSlide = 0;
+        const totalSlides = questions.length + 2; // welcome + questions + result
+        let answers = {};
+        let isTransitioning = false;
+
+        // ============================================
+        // 6. Init
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            generateGeometrics();
+            buildQuestionSlides();
+            buildResultSlide();
+            setupKeyboard();
+        });
+
+        // ============================================
+        // 7. Geometric Shapes
+        // ============================================
+        function generateGeometrics() {
+            const canvas = document.getElementById('geoCanvas');
+            const shapes = [
+                { cls: 'geo geo-square', x: 8, y: 12, dur: 7, del: 0, base: 'rotate(45deg)' },
+                { cls: 'geo geo-square blue', x: 85, y: 25, dur: 9, del: 2, base: 'rotate(45deg)' },
+                { cls: 'geo geo-square violet', x: 15, y: 70, dur: 8, del: 4, base: 'rotate(45deg)' },
+                { cls: 'geo geo-square yellow', x: 90, y: 75, dur: 10, del: 1, base: 'rotate(45deg)' },
+                { cls: 'geo geo-circle', x: 75, y: 10, dur: 11, del: 0, base: 'rotate(0deg)' },
+                { cls: 'geo geo-circle coral', x: 5, y: 45, dur: 9, del: 3, base: 'rotate(0deg)' },
+                { cls: 'geo geo-circle mint', x: 70, y: 60, dur: 12, del: 5, base: 'rotate(0deg)' },
+                { cls: 'geo geo-circle orange', x: 25, y: 88, dur: 8, del: 2, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot coral', x: 30, y: 8, dur: 6, del: 1, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot blue', x: 60, y: 18, dur: 7, del: 3, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot mint', x: 45, y: 82, dur: 8, del: 0, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot violet', x: 92, y: 50, dur: 9, del: 4, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot', x: 12, y: 30, dur: 7, del: 2, base: 'rotate(0deg)' },
+                { cls: 'geo geo-dot coral', x: 80, y: 90, dur: 10, del: 1, base: 'rotate(0deg)' },
+                { cls: 'geo geo-triangle', x: 50, y: 5, dur: 10, del: 2, base: 'rotate(0deg)' },
+                { cls: 'geo geo-triangle coral', x: 95, y: 40, dur: 8, del: 0, base: 'rotate(15deg)' },
+                { cls: 'geo geo-triangle blue', x: 20, y: 55, dur: 11, del: 3, base: 'rotate(-10deg)' },
+                { cls: 'geo geo-triangle violet', x: 65, y: 92, dur: 9, del: 5, base: 'rotate(20deg)' },
+                { cls: 'geo geo-half', x: 40, y: 30, dur: 10, del: 1, base: 'rotate(0deg)' },
+                { cls: 'geo geo-half blue', x: 55, y: 70, dur: 12, del: 3, base: 'rotate(180deg)' },
+                { cls: 'geo geo-half coral', x: 3, y: 90, dur: 9, del: 0, base: 'rotate(90deg)' },
+            ];
+
+            shapes.forEach(s => {
+                const el = document.createElement('div');
+                el.className = s.cls;
+                el.style.left = s.x + '%';
+                el.style.top = s.y + '%';
+                el.style.setProperty('--geo-base', s.base);
+                el.style.animationDuration = s.dur + 's';
+                el.style.animationDelay = s.del + 's';
+                canvas.appendChild(el);
+            });
+        }
+
+        // ============================================
+        // 8. Build Slides
+        // ============================================
+        function buildQuestionSlides() {
+            const slidesEl = document.getElementById('slides');
+
+            questions.forEach((q, idx) => {
+                const slideDiv = document.createElement('div');
+                slideDiv.className = 'slide';
+                slideDiv.dataset.slide = idx + 1;
+
+                const colorClass = q.color;
+
+                slideDiv.innerHTML = `
+                    <div class="card">
+                        <div class="q-category q-cat-${q.cat}">${catLabels[q.cat]}</div>
+                        <div class="q-number">
+                            <span class="q-num-${colorClass}">${idx + 1}</span>
+                            Q${idx + 1}
+                        </div>
+                        <h2 class="q-text">${q.text}</h2>
+                        <p class="q-hint">${q.hint}</p>
+                        <div class="likert-options">
+                            ${likertLabels.map((label, li) => `
+                                <div class="likert-btn" data-qid="${q.id}" data-value="${li}" onclick="selectLikert(this, '${q.id}', ${li})">
+                                    <span class="likert-emoji">${likertEmojis[li]}</span>
+                                    <span class="likert-label">${label}</span>
+                                    <span class="likert-check">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                slidesEl.appendChild(slideDiv);
+            });
+        }
+
+        function buildResultSlide() {
+            const slidesEl = document.getElementById('slides');
+            const slideDiv = document.createElement('div');
+            slideDiv.className = 'slide result-slide';
+            slideDiv.dataset.slide = questions.length + 1;
+
+            slideDiv.innerHTML = `
+                <div class="card result-card">
+                    <div class="result-emoji" id="resultEmoji"></div>
+                    <h2 class="result-title" id="resultTitle"></h2>
+                    <p class="result-type-en" id="resultTypeEn"></p>
+                    <p class="result-slogan" id="resultSlogan"></p>
+
+                    <div class="axis-tags" id="axisTags"></div>
+
+                    <div class="level-badge level-green" id="levelBadge">
+                        <span id="levelBadgeText"></span>
+                    </div>
+
+                    <div class="gauge-container">
+                        <svg width="200" height="120" viewBox="0 0 200 120">
+                            <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
+                            <path class="gauge-fill" id="gaugeFill" d="M 20 100 A 80 80 0 0 1 180 100"
+                                  stroke="var(--mint)"
+                                  stroke-dasharray="251"
+                                  stroke-dashoffset="251" />
+                        </svg>
+                        <div class="gauge-score"><span id="scoreNum">0</span><small>점</small></div>
+                    </div>
+
+                    <p id="resultRiskDesc" style="font-size:14px;color:var(--ink-mid);margin-bottom:24px;"></p>
+
+                    <div class="result-section" id="sectionDesc">
+                        <h4>🔎 유형 설명</h4>
+                        <p id="resultDescText"></p>
+                    </div>
+
+                    <div class="result-section" id="sectionStrengths">
+                        <h4>💪 강점</h4>
+                        <ul id="resultStrengthsList"></ul>
+                    </div>
+
+                    <div class="result-section" id="sectionCautions">
+                        <h4>⚠️ 주의점</h4>
+                        <ul id="resultCautionsList"></ul>
+                    </div>
+
+                    <div class="result-section guide-section" id="sectionGuide">
+                        <h4>📋 부모님 가이드</h4>
+                        <ul id="resultGuideList"></ul>
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="cta-btn" onclick="restartSurvey()">
+                            다시 검사하기
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"/>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                            </svg>
+                        </button>
+                        <button class="btn-outline" onclick="copyResult()">
+                            결과 복사하기
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            slidesEl.appendChild(slideDiv);
+        }
+
+        // ============================================
+        // 9. Navigation
+        // ============================================
+        function goToSlide(index) {
+            if (isTransitioning || index < 0 || index >= totalSlides) return;
+            isTransitioning = true;
+
+            const allSlides = document.querySelectorAll('.slide');
+            const currentEl = allSlides[currentSlide];
+            const nextEl = allSlides[index];
+            const direction = index > currentSlide ? 'up' : 'down';
+
+            currentEl.classList.remove('active');
+            currentEl.classList.add(direction === 'up' ? 'exit-up' : 'exit-down');
+
+            setTimeout(() => {
+                currentEl.classList.remove('exit-up', 'exit-down');
+                nextEl.classList.add('active');
+                currentSlide = index;
+                updateUI();
+                isTransitioning = false;
+            }, 250);
+        }
+
+        function updateUI() {
+            const isQuestion = currentSlide >= 1 && currentSlide <= questions.length;
+            const isResult = currentSlide === questions.length + 1;
+
+            const counter = document.getElementById('stepCounter');
+            const backBtn = document.getElementById('backBtn');
+            const keyHint = document.getElementById('keyHint');
+
+            if (isQuestion) {
+                counter.style.display = 'block';
+                document.getElementById('stepText').textContent = `${currentSlide} / ${questions.length}`;
+                counter.classList.add('bump');
+                setTimeout(() => counter.classList.remove('bump'), 400);
+                backBtn.style.display = 'flex';
+                keyHint.classList.add('visible');
+            } else {
+                counter.style.display = 'none';
+                backBtn.style.display = currentSlide > 0 && !isResult ? 'flex' : 'none';
+                keyHint.classList.remove('visible');
+            }
+
+            if (isResult) {
+                backBtn.style.display = 'none';
+                keyHint.classList.remove('visible');
+            }
+
+            let progress = 0;
+            if (isQuestion) progress = (currentSlide / questions.length) * 100;
+            else if (isResult) progress = 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function goBack() {
+            if (currentSlide > 0) goToSlide(currentSlide - 1);
+        }
+
+        function startSurvey() {
+            goToSlide(1);
+        }
+
+        function advanceFromQuestion() {
+            const nextSlide = currentSlide + 1;
+            if (nextSlide <= questions.length) {
+                goToSlide(nextSlide);
+            } else {
+                calculateResult();
+                goToSlide(questions.length + 1);
+            }
+        }
+
+        // ============================================
+        // 10. Input Handling
+        // ============================================
+        function selectLikert(el, qid, value) {
+            answers[qid] = value;
+            const parent = el.closest('.likert-options');
+            parent.querySelectorAll('.likert-btn').forEach(btn => btn.classList.remove('selected'));
+            el.classList.add('selected');
+            setTimeout(() => advanceFromQuestion(), 450);
+        }
+
+        // ============================================
+        // 11. Calculation
+        // ============================================
+        function calculateResult() {
+            let pSum = 0, uSum = 0, lSum = 0;
+            let sScores = { S1: 3, S2: 3, S3: 3, S4: 3 };
+
+            for (const [qid, valueIndex] of Object.entries(answers)) {
+                const score = valueIndex + 1; // 0-4 index → 1-5 score
+                if (qid.startsWith('P')) pSum += score;
+                else if (qid.startsWith('U')) uSum += score;
+                else if (qid.startsWith('L')) lSum += score;
+                else if (qid.startsWith('S')) sScores[qid] = score;
+            }
+
+            // Normalize to 0-100
+            const pNorm = (pSum - 5) / 20 * 100;
+            const uNorm = (uSum - 7) / 28 * 100;
+            const lNorm = (lSum - 5) / 20 * 100;
+
+            // HRS (Hallucination Risk Score) — higher = more autonomous
+            const hrs = Math.round((pNorm * 0.25 + uNorm * 0.50 + lNorm * 0.25) * 10) / 10;
+
+            // 4-bit type classification
+            const bits = [
+                sScores.S1 >= 3 ? 1 : 0, // 정밀(1) / 신속(0)
+                sScores.S2 >= 3 ? 1 : 0, // 탐색(1) / 고정(0)
+                sScores.S3 >= 3 ? 1 : 0, // 설계(1) / 위탁(0)
+                sScores.S4 >= 3 ? 1 : 0, // 고유(1) / 범용(0)
+            ];
+            const bitKey = bits.join('');
+            const typeCode = typeMap[bitKey];
+
+            // Risk level
+            let risk = riskLevels[riskLevels.length - 1];
+            for (const level of riskLevels) {
+                if (hrs >= level.range[0] && hrs <= level.range[1]) {
+                    risk = level;
+                    break;
+                }
+            }
+
+            displayResult(hrs, typeCode, risk, bits, sScores);
+        }
+
+        // ============================================
+        // 12. Result Display
+        // ============================================
+        function displayResult(hrs, typeCode, risk, bits, sScores) {
+            const type = typeData[typeCode];
+
+            // Type header
+            document.getElementById('resultEmoji').textContent = type.icon;
+            document.getElementById('resultTitle').textContent = type.name;
+            document.getElementById('resultTypeEn').textContent = type.nameEn;
+            document.getElementById('resultSlogan').textContent = '"' + type.slogan + '"';
+
+            // Axis tags
+            const tagsEl = document.getElementById('axisTags');
+            tagsEl.innerHTML = bits.map((b, i) => {
+                const label = axisLabels[i][b];
+                const cls = b ? 'high' : 'low';
+                return `<span class="axis-tag ${cls}">${label}</span>`;
+            }).join('');
+
+            // Risk level badge
+            const badge = document.getElementById('levelBadge');
+            badge.className = 'level-badge ' + risk.badge;
+            document.getElementById('levelBadgeText').textContent = risk.label + ' — HRS ' + hrs + '점';
+
+            // Risk description
+            document.getElementById('resultRiskDesc').textContent = risk.desc;
+
+            // Gauge
+            document.getElementById('gaugeFill').style.stroke = risk.barColor;
+
+            setTimeout(() => {
+                const pct = Math.max(0, Math.min(hrs, 100)) / 100;
+                document.getElementById('gaugeFill').style.strokeDashoffset = 251 * (1 - pct);
+                animateNumber('scoreNum', 0, hrs, 1200);
+            }, 400);
+
+            // Type description
+            document.getElementById('resultDescText').textContent = type.desc;
+
+            // Strengths
+            document.getElementById('resultStrengthsList').innerHTML =
+                type.strengths.map(s => `<li>${s}</li>`).join('');
+
+            // Cautions
+            document.getElementById('resultCautionsList').innerHTML =
+                type.cautions.map(c => `<li>${c}</li>`).join('');
+
+            // Guide
+            document.getElementById('resultGuideList').innerHTML =
+                type.guide.map(g => `<li>${g}</li>`).join('');
+
+            // Confetti for high autonomy
+            if (hrs >= 65) setTimeout(launchConfetti, 600);
+        }
+
+        function animateNumber(elementId, start, end, duration) {
+            const el = document.getElementById(elementId);
+            const startTime = performance.now();
+            function update(t) {
+                const p = Math.min((t - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round((start + (end - start) * eased) * 10) / 10;
+                if (p < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+
+        // ============================================
+        // 13. Confetti
+        // ============================================
+        function launchConfetti() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+            const colors = ['var(--coral)', 'var(--blue)', 'var(--yellow)', 'var(--mint)', 'var(--violet)', 'var(--orange)'];
+
+            for (let i = 0; i < 60; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                const isSquare = Math.random() > 0.5;
+                const size = Math.random() * 10 + 5;
+                piece.style.width = size + 'px';
+                piece.style.height = isSquare ? size + 'px' : size * 0.4 + 'px';
+                piece.style.borderRadius = isSquare ? '2px' : '0';
+                piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                piece.style.animationDelay = (Math.random() * 0.8) + 's';
+                container.appendChild(piece);
+            }
+            setTimeout(() => container.remove(), 4000);
+        }
+
+        // ============================================
+        // 14. Keyboard
+        // ============================================
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (isTransitioning) return;
+                const isQuestion = currentSlide >= 1 && currentSlide <= questions.length;
+
+                if (!isQuestion) {
+                    if (e.key === 'Enter' && currentSlide === 0) startSurvey();
+                    return;
+                }
+
+                const q = questions[currentSlide - 1];
+
+                if (e.key >= '1' && e.key <= '5') {
+                    const value = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.slide')[currentSlide].querySelectorAll('.likert-btn');
+                    if (btns[value]) selectLikert(btns[value], q.id, value);
+                }
+
+                if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
+                    e.preventDefault();
+                    goBack();
+                }
+            });
+        }
+
+        // ============================================
+        // 15. Utilities
+        // ============================================
+        function restartSurvey() {
+            answers = {};
+            currentSlide = 0;
+
+            document.querySelectorAll('.likert-btn.selected').forEach(el => el.classList.remove('selected'));
+
+            document.getElementById('gaugeFill').style.strokeDashoffset = '251';
+
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active', 'exit-up', 'exit-down'));
+            document.querySelectorAll('.slide')[0].classList.add('active');
+            updateUI();
+        }
+
+        function copyResult() {
+            const icon = document.getElementById('resultEmoji').textContent;
+            const title = document.getElementById('resultTitle').textContent;
+            const typeEn = document.getElementById('resultTypeEn').textContent;
+            const slogan = document.getElementById('resultSlogan').textContent;
+            const badgeText = document.getElementById('levelBadgeText').textContent;
+            const desc = document.getElementById('resultDescText').textContent;
+
+            const text = `🧠 우리아이 AI타입 진단 결과\n\n${icon} ${title} (${typeEn})\n${slogan}\n\n📊 ${badgeText}\n\n${desc}\n\n👉 나도 검사해보기: ${location.href}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('결과가 클립보드에 복사되었습니다');
+            }).catch(() => {
+                showToast('복사에 실패했습니다');
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+    </script>
+</body>
+</html>
